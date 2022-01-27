@@ -7,7 +7,7 @@ from rest_framework import status
 from .models import AccountModel
 from .serializer import AccountSerializer
 from django.db.models.aggregates import Sum
-from django.db.models import FloatField
+from django.db.models import FloatField, Q
 from django.db.models.functions import Cast
 
 
@@ -36,17 +36,22 @@ class RetUpDelAccount(RetrieveUpdateDestroyAPIView):
         return AccountModel.objects.filter(user=self.request.user)
 
 
-class DeltaBetweenMonth(APIView):
+class DeltaMonthAndTotalPrice(APIView):
 
     def post(self, request):
         msg = dict()
-        data = request.data['month']
-        month_number = datetime.strptime(data, '%b').month
-        acc = AccountModel.objects.filter(created__month=month_number).annotate(
+        month_data = request.data['month']
+        year_data = request.data['year']
+        month_number = datetime.strptime(month_data, '%b').month
+
+        lookup = Q(user=request.user) & Q(
+            created__month=month_number) & Q(created__year=year_data)
+
+        price = AccountModel.objects.filter(lookup).annotate(
             price_float=Cast('price', FloatField())
         ).aggregate(Sum('price_float'))['price_float__sum']
-        print(acc)
-        # acc = AccountSerializer(acc,many=True)
-        return Response({'total': acc})
-
-
+        accounts = AccountModel.objects.filter(lookup)
+        AccSeri = AccountSerializer(accounts, many=True)
+        msg['accounts'] = AccSeri.data
+        msg['total_price'] = price
+        return Response(msg, status=status.HTTP_200_OK)

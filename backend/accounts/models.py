@@ -14,7 +14,6 @@ class AccountModel(models.Model):
     subject = models.CharField(max_length=250)
     price = models.CharField(max_length=50)
     description = models.TextField()
-    date = models.DateField(auto_now=True)
 
     class Meta:
         verbose_name = 'Account'
