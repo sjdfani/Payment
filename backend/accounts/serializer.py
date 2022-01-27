@@ -6,6 +6,11 @@ class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccountModel
         fields = '__all__'
+        extra_kwargs = {
+            'user': {
+                'required': False
+            }
+        }
 
     def validate_price(self, value: str):
         if not value.isnumeric():
