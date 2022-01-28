@@ -36,17 +36,16 @@ class RetUpDelAccount(RetrieveUpdateDestroyAPIView):
         return AccountModel.objects.filter(user=self.request.user)
 
 
-class DeltaMonthAndTotalPrice(APIView):
+class DeltaMonthAndTotalPrice_IN(APIView):
 
     def post(self, request):
         msg = dict()
         month_data = request.data['month']
+        month_data = month_data.lower().capitalize()
         year_data = request.data['year']
         month_number = datetime.strptime(month_data, '%b').month
-
         lookup = Q(user=request.user) & Q(
-            created__month=month_number) & Q(created__year=year_data)
-
+            created__month=month_number) & Q(created__year=year_data) & Q(state='deposit')
         price = AccountModel.objects.filter(lookup).annotate(
             price_float=Cast('price', FloatField())
         ).aggregate(Sum('price_float'))['price_float__sum']
@@ -54,4 +53,40 @@ class DeltaMonthAndTotalPrice(APIView):
         AccSeri = AccountSerializer(accounts, many=True)
         msg['accounts'] = AccSeri.data
         msg['total_price'] = price
+        return Response(msg, status=status.HTTP_200_OK)
+
+
+class DeltaMonthAndTotalPrice_OUT(APIView):
+
+    def post(self, request):
+        msg = dict()
+        month_data = request.data['month']
+        month_data = month_data.lower().capitalize()
+        year_data = request.data['year']
+        month_number = datetime.strptime(month_data, '%b').month
+        lookup = Q(user=request.user) & Q(
+            created__month=month_number) & Q(created__year=year_data) & Q(state='withdraw')
+        price = AccountModel.objects.filter(lookup).annotate(
+            price_float=Cast('price', FloatField())
+        ).aggregate(Sum('price_float'))['price_float__sum']
+        accounts = AccountModel.objects.filter(lookup)
+        AccSeri = AccountSerializer(accounts, many=True)
+        msg['accounts'] = AccSeri.data
+        msg['total_price'] = price
+        return Response(msg, status=status.HTTP_200_OK)
+
+
+class DeltaMonthAndTotalPrice_Total(APIView):
+
+    def post(self, request):
+        msg = dict()
+        month_data = request.data['month']
+        month_data = month_data.lower().capitalize()
+        year_data = request.data['year']
+        month_number = datetime.strptime(month_data, '%b').month
+        lookup = Q(user=request.user) & Q(
+            created__month=month_number) & Q(created__year=year_data)
+        accounts = AccountModel.objects.filter(lookup)
+        AccSeri = AccountSerializer(accounts, many=True)
+        msg['accounts'] = AccSeri.data
         return Response(msg, status=status.HTTP_200_OK)
