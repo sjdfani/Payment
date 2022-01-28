@@ -17,6 +17,7 @@ class AccountModel(models.Model):
 
     class Meta:
         verbose_name = 'Account'
+        ordering = ('-created',)
 
     def __str__(self) -> str:
         return self.subject
