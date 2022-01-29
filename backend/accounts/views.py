@@ -12,18 +12,19 @@ from django.db.models.functions import Cast
 
 
 class CreateAccount(APIView):
+    permission_class = [IsAdminUser]
 
     def post(self, request):
         data = request.data
-        data['user'] = request.user
-        acc = AccountModel.objects.create(**data)
-        AccSerializer = AccountSerializer(acc)
-        return Response(AccSerializer.data, status=status.HTTP_201_CREATED)
+        data['user'] = request.user.id
+        serializer = AccountSerializer(data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class ListAccount(ListAPIView):
     serializer_class = AccountSerializer
-    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         return AccountModel.objects.filter(user=self.request.user)
@@ -31,12 +32,14 @@ class ListAccount(ListAPIView):
 
 class RetUpDelAccount(RetrieveUpdateDestroyAPIView):
     serializer_class = AccountSerializer
+    permission_class = [IsAdminUser]
 
     def get_queryset(self):
         return AccountModel.objects.filter(user=self.request.user)
 
 
 class DeltaMonthAndTotalPrice_IN(APIView):
+    permission_class = [IsAdminUser]
 
     def post(self, request):
         msg = dict()
@@ -57,6 +60,7 @@ class DeltaMonthAndTotalPrice_IN(APIView):
 
 
 class DeltaMonthAndTotalPrice_OUT(APIView):
+    permission_class = [IsAdminUser]
 
     def post(self, request):
         msg = dict()
@@ -77,6 +81,7 @@ class DeltaMonthAndTotalPrice_OUT(APIView):
 
 
 class DeltaMonthAndTotalPrice_Total(APIView):
+    permission_class = [IsAdminUser]
 
     def post(self, request):
         msg = dict()
