@@ -17,7 +17,7 @@ class Demands(models.Model):
     who = models.CharField(max_length=250)
     price = models.CharField(max_length=50)
     subject = models.CharField(max_length=250)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     date = models.DateField()
     created = models.DateTimeField(auto_now_add=True)
     status = models.BooleanField(default=False)
